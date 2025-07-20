@@ -1,6 +1,6 @@
 ### Extensity - Quickly enable/disable Google Chrome extensions
 
-Copyright (c) 2011, Sergio Kaszczyszyn (extensity@sergiokas.com)
+Copyright (c) 2024, 
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
