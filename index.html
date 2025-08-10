@@ -18,9 +18,11 @@
 
 <body>
 
-	<main class="easy-main">
+	<main class="easy-main easy-list">
 		<div style="background-image: url(images/iconbg.png);background-repeat: no-repeat;" class="easy-list">
-			<div class="horizontal-list" data-sbind="foreach: listedItems">
+	<div class="easy-list">
+		<div class="horizontal-list">
+			<div class="horizontal-items-container" data-sbind="foreach: listedItems">
 				<div class="horizontal-item" data-sbind="css:{disabled: !status()}, click: $parent.toggleExtension">
 					<img width="24px" height="24px" data-sbind="attr:{src:icon, title:name}" class="ext-icon" />
 					<span class="ext-title" data-sbind="text: short_name"></span>
@@ -31,6 +33,8 @@
 					<i class="fa fa-gear options-btn" title="Options" alt="Options"
 						data-sbind="visible: $parent.opts.showOptions() && optionsUrl() && status(), click: $parent.launchOptions, clickBubble: false"></i>
 				</div>
+			</div>
+			<div class="footer-container">
 				<div class="horizontal-footer">
 					<i class="fa fa-heart footer-icon"></i>
 					<span class="footer-text">made by</span>
@@ -43,11 +47,15 @@
 						target="_blank" class="footer-link">★★★★★</a>
 				</div>
 			</div>
-			<div class="empty-list" data-sbind="visible: emptyItems">
-				<p class="empty"><i class="fa fa-exclamation-triangle"></i><br />No Extensions or Apps found.</p>
-			</div>
 		</div>
+		<div class="empty-list" data-sbind="visible: emptyItems">
+			<p class="empty"><i class="fa fa-exclamation-triangle"></i><br />No Extensions or Apps found.</p>
+		</div>
+	</div>
+</div>
+
 	</main>
+	
 </body>
 
 </html>
