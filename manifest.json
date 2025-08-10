@@ -1,6 +1,6 @@
 {
   "name": "Extension Manager",
-  "version": "1.14.0",
+  "version": "1.14.1",
   "manifest_version": 3,
   "description": "A simple tool to enable, disable, or remove your Chrome extensions with ease.",
   "icons" : {
