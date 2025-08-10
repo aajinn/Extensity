@@ -271,6 +271,7 @@ var ExtensionModel = function (e) {
   self.status = ko.observable(item.enabled);
   self.optionsUrl = ko.observable(item.optionsUrl);
   self.installType = ko.observable(item.installType);
+  self.version = ko.observable(item.version);
 
   self.disabled = ko.pureComputed(function () {
     return !self.status();

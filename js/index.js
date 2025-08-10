@@ -1,11 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-  var SearchViewModel = function () {
-    var self = this;
-    self.q = ko.observable("");
 
-    // TODO: Add more search control here.
-  };
 
   var SwitchViewModel = function (exts, profiles, opts) {
     var self = this;
@@ -56,26 +51,10 @@ document.addEventListener("DOMContentLoaded", function () {
     self.opts = new OptionsCollection();
     self.dismissals = new DismissalsCollection();
     self.switch = new SwitchViewModel(self.exts, self.profiles, self.opts);
-    self.search = new SearchViewModel();
     self.activeProfile = ko.observable().extend({ persistable: "activeProfile" });
 
-    // View mode state and toggle
-    self.viewMode = ko.observable(localStorage.getItem('viewMode') || 'list');
-    self.toggleView = function () {
-      var newMode = self.viewMode() === 'list' ? 'grid' : 'list';
-      self.viewMode(newMode);
-      localStorage.setItem('viewMode', newMode);
-    };
-    self.viewIcon = ko.pureComputed(function () {
-      return self.viewMode() === 'list' ? 'fa-th' : 'fa-list';
-    });
-
-    var filterFn = function (i) {
-      // Filtering function for search box
-      if (!self.opts.searchBox()) return true;
-      if (!self.search.q()) return true;
-      return i.name().toUpperCase().indexOf(self.search.q().toUpperCase()) !== -1;
-    };
+    // Only horizontal view mode
+    self.viewMode = ko.observable('horizontal');
 
     var filterProfileFn = function (i) {
       if (!i.reserved()) return true;
@@ -86,12 +65,33 @@ document.addEventListener("DOMContentLoaded", function () {
       return (self.profiles.favorites().contains(i));
     }
 
+    // Usage tracking
+    self.usageStats = ko.observable({});
+    
+    // Load usage stats from storage
+    chrome.storage.local.get('extensionUsage', function(result) {
+      self.usageStats(result.extensionUsage || {});
+    });
+    
+    // Track extension usage
+    self.trackUsage = function(extensionId) {
+      var stats = self.usageStats();
+      stats[extensionId] = (stats[extensionId] || 0) + 1;
+      self.usageStats(stats);
+      chrome.storage.local.set({'extensionUsage': stats});
+    };
+
     var nameSortFn = function (i) {
       return i.name().toUpperCase();
     };
 
     var statusSortFn = function (i) {
       return self.opts.enabledFirst() && !i.status();
+    };
+    
+    var usageSortFn = function (i) {
+      var stats = self.usageStats();
+      return -(stats[i.id()] || 0); // Negative for descending order (most used first)
     };
 
     self.openChromeExtensions = function () {
@@ -100,31 +100,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
     self.launchApp = function (app) {
       chrome.management.launchApp(app.id());
+      self.trackUsage(app.id());
     };
 
     self.launchOptions = function (ext) {
       chrome.tabs.create({ url: ext.optionsUrl(), active: true });
+      self.trackUsage(ext.id());
     };
 
     self.listedExtensions = ko.computed(function () {
-      // Sorted/Filtered list of extensions
+      // Sorted list of extensions
       return _(self.exts.extensions()).chain()
-        .filter(filterFn)
         .sortBy(nameSortFn)
         .sortBy(statusSortFn)
         .value()
     }).extend({ countable: null });
 
     self.listedApps = ko.computed(function () {
-      // Sorted/Filtered list of apps
-      return _(self.exts.apps())
-        .filter(filterFn);
+      // List of apps
+      return self.exts.apps();
     }).extend({ countable: null });
 
     self.listedItems = ko.computed(function () {
-      // Sorted/Filtered list of all items
-      return _(self.exts.items())
-        .filter(filterFn);
+      // List of all items sorted by usage (trigger on usageStats change)
+      var stats = self.usageStats();
+      return _(self.exts.items()).chain()
+        .sortBy(nameSortFn)
+        .sortBy(statusSortFn)
+        .sortBy(function(i) {
+          return -(stats[i.id()] || 0); // Most used first
+        })
+        .value();
     }).extend({ countable: null });
 
     self.listedProfiles = ko.computed(function () {
@@ -135,7 +141,6 @@ document.addEventListener("DOMContentLoaded", function () {
     self.listedFavorites = ko.computed(function () {
       return _(self.exts.extensions()).chain()
         .filter(filterFavoriteFn)
-        .filter(filterFn)
         .sortBy(nameSortFn)
         .sortBy(statusSortFn)
         .value();
@@ -161,6 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     self.toggleExtension = function (e) {
       e.toggle();
+      self.trackUsage(e.id());
       self.unsetProfile();
     }
 
@@ -187,42 +193,18 @@ document.addEventListener("DOMContentLoaded", function () {
     ko.applyBindings(vm, document.body);
     // Expose for debugging
     window.vm = vm;
+
+    // Add horizontal scroll on mouse wheel
+    const horizontalList = document.querySelector('.horizontal-list');
+    if (horizontalList) {
+      horizontalList.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        horizontalList.scrollLeft += e.deltaY;
+      });
+    }
   });
 
-  // Workaround for Chrome bug https://bugs.chromium.org/p/chromium/issues/detail?id=307912
-  window.setTimeout(function () { document.getElementById('workaround-307912').style.display = 'block'; }, 0);
 
-  // Light/Dark mode toggle logic
-  const html = document.documentElement;
-  const btn = document.getElementById('theme-toggle');
-  const icon = document.getElementById('theme-icon');
-  function setTheme(mode) {
-    if (mode === 'dark') {
-      html.setAttribute('data-theme', 'dark');
-      icon.classList.remove('fa-moon-o');
-      icon.classList.add('fa-sun-o');
-    } else {
-      html.setAttribute('data-theme', 'light');
-      icon.classList.remove('fa-sun-o');
-      icon.classList.add('fa-moon-o');
-    }
-    localStorage.setItem('theme', mode);
-  }
-  function toggleTheme() {
-    const current = html.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    setTheme(current === 'dark' ? 'light' : 'dark');
-  }
-  if (btn && icon) {
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      toggleTheme();
-    });
-    // On load, set theme from localStorage or default to light
-    const saved = localStorage.getItem('theme');
-    if (saved) {
-      setTheme(saved);
-    } else {
-      setTheme('light');
-    }
-  }
+
+
 });

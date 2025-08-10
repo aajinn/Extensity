@@ -17,39 +17,30 @@
 </head>
 
 <body>
-	<header class="easy-header">
-		<div class="header-center">
-			<img src="images/icon48.png" alt="Extension Manager" class="logo" />
-			<span class="brand">Extension Manager</span>
-		</div>
-		<a href="#" class="icon-btn theme-toggle" id="theme-toggle" title="Toggle light/dark mode"><i class="fa fa-moon-o"
-				id="theme-icon"></i></a>
-		<a href="#" class="icon-btn switch" data-sbind="click: switch.flip" title="Toggle all extensions"><i class="fa"
-				data-sbind="css: switch.toggleStyle"></i></a>
-		<a href="#" class="icon-btn view-toggle" id="view-toggle" data-sbind="click: toggleView" title="Switch view mode">
-			<i class="fa" data-sbind="css: viewIcon"></i>
-		</a>
-	</header>
+
 	<main class="easy-main">
-		<div class="easy-search" data-sbind="if: opts.searchBox">
-			<input type="text" placeholder="Search extensions or apps..." data-sbind="value: search.q, valueUpdate: 'keyup'"
-				tabindex=1 autofocus />
-		</div>
-		<div style="background-image: url(images/icon128.png);background-repeat: no-repeat;" class="easy-list">
-			<ul class="ext-list" data-sbind="foreach: listedItems, visible: viewMode() === 'list'">
-				<li class="ext-item" data-sbind="css:{disabled: !status()}, click: $parent.toggleExtension">
-					<img width="28px" height="28px" data-sbind="attr:{src:icon, title:name}" class="ext-icon" />
+		<div style="background-image: url(images/iconbg.png);background-repeat: no-repeat;" class="easy-list">
+			<div class="horizontal-list" data-sbind="foreach: listedItems">
+				<div class="horizontal-item" data-sbind="css:{disabled: !status()}, click: $parent.toggleExtension">
+					<img width="24px" height="24px" data-sbind="attr:{src:icon, title:name}" class="ext-icon" />
 					<span class="ext-title" data-sbind="text: short_name"></span>
+					<span class="ext-version" data-sbind="text: version"></span>
 					<span class="ext-type" data-sbind="visible: isApp">App</span>
 					<i class="fa fa-flask dev-badge" title="Development" alt="Development"
 						data-sbind="visible: is_development"></i>
 					<i class="fa fa-gear options-btn" title="Options" alt="Options"
 						data-sbind="visible: $parent.opts.showOptions() && optionsUrl() && status(), click: $parent.launchOptions, clickBubble: false"></i>
-				</li>
-			</ul>
-			<div class="icon-grid" data-sbind="foreach: listedItems, visible: viewMode() === 'grid'">
-				<div class="icon-grid-item" data-sbind="css:{disabled: !status()}, click: $parent.toggleExtension">
-					<img width="48px" height="48px" data-sbind="attr:{src:icon, title:name}" class="ext-icon" />
+				</div>
+				<div class="horizontal-footer">
+					<i class="fa fa-heart footer-icon"></i>
+					<span class="footer-text">made by</span>
+					<a href="https://ared.dev" target="_blank" class="footer-link">Ared</a>
+				</div>
+				<div class="horizontal-footer rate-footer">
+					<i class="fa fa-star footer-icon"></i>
+					<span class="footer-text">rate us</span>
+					<a href="https://chromewebstore.google.com/detail/extension-manager/dbgdkefgdjngogpeanaoiddgcgonpalb/reviews"
+						target="_blank" class="footer-link">★★★★★</a>
 				</div>
 			</div>
 			<div class="empty-list" data-sbind="visible: emptyItems">
@@ -57,7 +48,6 @@
 			</div>
 		</div>
 	</main>
-	<div id="workaround-307912" style="display: none; height: 1px;"></div>
 </body>
 
 </html>
